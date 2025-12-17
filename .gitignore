@@ -1,0 +1,42 @@
+# See help.github.com for more about ignoring files.
+
+# Compiled output
+/dist
+/tmp
+/out-tsc
+/bazel-out
+/.angular/cache
+
+# Node
+/node_modules
+npm-debug.log
+yarn-error.log
+.npm
+
+# IDEs and editors
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+# Visual Studio Code
+.vscode/
+# exclude just the .vscode folder configuration, but not recommended to ignore it
+#!.vscode/settings.json
+#!.vscode/tasks.json
+#!.vscode/launch.json
+#!.vscode/extensions.json
+
+# System Files
+.DS_Store
+Thumbs.db
+.cache
+.editorconfig
+.eslintcache
+e2e/*.js
+e2e/*.map
+
+# Environment files
+src/environments/
