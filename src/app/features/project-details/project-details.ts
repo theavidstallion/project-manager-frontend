@@ -794,10 +794,18 @@ export class ProjectDetails implements OnInit {
     if (!user || !project) return false;
 
     // I can manage if I am Admin OR I created this project
-    return user.role === 'Admin' || project.creatorName === user.username; 
+    return user.role === 'Admin' || project.creatorId === user.userId; 
     // Note: Better to compare IDs if available (project.creatorId === user.userId)
     // If you don't have creatorId in the frontend model, use the name or add ID to the DTO.
   }
+
+  // canManageTask(): boolean {
+  //   const user = this.authService.currentUser();
+  //   const task = this.selectedTask;
+  //   if (!user || !task) return false;
+
+  //   return user.role === 'Admin' || this.selectedTask?.assignedUserId === user.userId;
+  // }
 
   // 2. ACTION: Remove Member
   onRemoveMember(member: any) {
