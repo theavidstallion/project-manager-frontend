@@ -93,6 +93,9 @@ export class ProjectDetails implements OnInit {
   isEditingTask = signal(false);
   editTaskData: any = {};
 
+  isReassigning = signal(false);
+  tempAssignedUserId = '';
+
   editingCommentId: number | null = null;
   editCommentText = '';
   
@@ -882,6 +885,82 @@ export class ProjectDetails implements OnInit {
       endDate: ''
     };
     this.applyFilters(); // Reset list to show all
+  }
+
+
+  // Reassign Tasks
+  // Check if current user can reassign task
+  canManageTask(task: TaskResponse): boolean {
+    const user = this.authService.currentUser();
+    if (!user) return false;
+
+    // Admin can always reassign
+    if (user.role === 'Admin') return true;
+
+    // Manager can reassign if they created the project
+    if (user.role === 'Manager' && user.userId === this.project()?.creatorId) return true;
+
+    // Member can reassign if task is assigned to them
+    if (user.role === 'Member' && task.assignedUserId === user.userId) return true;
+
+    return false;
+  }
+
+  // Start re-assignment mode
+  startReassignTask() {
+    if (!this.selectedTask) return;
+    this.tempAssignedUserId = this.selectedTask.assignedUserId;
+    this.isReassigning.set(true);
+  }
+
+  // Cancel re-assignment
+  cancelReassign() {
+    this.isReassigning.set(false);
+    this.tempAssignedUserId = '';
+  }
+
+  // Save re-assignment
+  onReassignTask() {
+    if (!this.selectedTask || !this.tempAssignedUserId) return;
+
+    // Don't make API call if user didn't change
+    if (this.tempAssignedUserId === this.selectedTask.assignedUserId) {
+      this.isReassigning.set(false);
+      return;
+    }
+
+    const currentUser = this.authService.currentUser();
+    const wasAssignedToMe = this.selectedTask.assignedUserId === currentUser?.userId;
+
+    
+    this.projectService.reassignTask(this.selectedTask.id, this.tempAssignedUserId).subscribe({
+      next: () => {
+        this.toast.show('Task reassigned successfully!');
+        
+        // Update local view immediately
+        const newUser = this.project()?.members.find(m => m.userId === this.tempAssignedUserId);
+        if (this.selectedTask && newUser) {
+          this.selectedTask.assignedUserId = this.tempAssignedUserId;
+          this.selectedTask.assignedUserName = `${newUser.firstName} ${newUser.lastName}`;
+        }
+
+        this.isReassigning.set(false);
+        
+        // If Member reassigned their own task, close modal and redirect
+        if (currentUser?.role === 'Member' && wasAssignedToMe) {
+          this.taskDetailModalInstance.hide();
+          this.loadTasks(this.project()!.id);
+          // Stay on same page (already on project details)
+        } else {
+          // For Admin/Manager, just refresh background
+          this.loadTasks(this.project()!.id);
+        }
+      },
+      error: (err) => {
+        const msg = err.error?.message || 'Failed to reassign task.';
+        this.toast.show(msg, 'error');
+      }
+    });
   }
 
 }

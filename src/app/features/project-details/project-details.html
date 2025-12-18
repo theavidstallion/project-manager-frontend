@@ -461,7 +461,7 @@
                             <i class="bi bi-trash-fill"></i>
                         </button>
                       }
-
+                      
                       <button class="btn btn-sm btn-outline-secondary" (click)="startEditTask()">
                           <i class="bi bi-pencil-fill"></i> Edit
                       </button>
@@ -598,13 +598,56 @@
 
             <div class="col-md-4">
                <div class="mb-4">
-                <label class="small text-muted fw-bold text-uppercase">Assigned To</label>
-                <div class="d-flex align-items-center mt-1">
-                  <div class="avatar-circle bg-primary text-white me-2 fw-bold small" style="width:28px; height:28px; display:flex; align-items:center; justify-content:center; border-radius:50%;">
-                    {{ selectedTask.assignedUserName.charAt(0) }}
-                  </div>
-                  <span>{{ selectedTask.assignedUserName }}</span>
-                </div>
+                  <label class="small text-muted fw-bold text-uppercase">Assigned To</label>
+                  
+                  @if (!isReassigning()) {
+                    <!-- VIEW MODE with hover edit button -->
+                    <div class="d-flex align-items-center mt-1 position-relative group-hover-container">
+                      <div class="avatar-circle bg-primary text-white me-2 fw-bold small" 
+                          style="width:28px; height:28px; display:flex; align-items:center; justify-content:center; border-radius:50%;">
+                        {{ selectedTask.assignedUserName.charAt(0) }}
+                      </div>
+                      <span>{{ selectedTask.assignedUserName }}</span>
+                      
+                      <!-- Show edit icon on hover if user has permission -->
+                      @if (canManageTask(selectedTask) && !isEditingTask()) {
+                        <button class="btn btn-link text-primary p-0 ms-auto delete-btn" 
+                                (click)="startReassignTask()"
+                                title="Re-assign task">
+                          <i class="bi bi-arrow-left-right"></i>
+                        </button>
+                      }
+                    </div>
+                  } 
+                  
+                  @else {
+                    <!-- EDIT MODE - Dropdown to select new user -->
+                    <div class="mt-2">
+                      <select class="form-select form-select-sm mb-2" 
+                              [(ngModel)]="tempAssignedUserId">
+                        <option value="" disabled>Select member...</option>
+                        @if (project(); as p) {
+                          @for (member of p.members; track member.userId) {
+                            <option [value]="member.userId">
+                              {{ member.firstName }} {{ member.lastName }}
+                            </option>
+                          }
+                        }
+                      </select>
+                      
+                      <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-primary" 
+                                (click)="onReassignTask()"
+                                [disabled]="!tempAssignedUserId">
+                          <i class="bi bi-check-lg"></i> Assign
+                        </button>
+                        <button class="btn btn-sm btn-secondary" 
+                                (click)="cancelReassign()">
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  }
                 </div>
 
               @if (!isEditingTask()) {

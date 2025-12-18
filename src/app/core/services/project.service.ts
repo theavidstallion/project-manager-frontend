@@ -105,4 +105,8 @@ export class ProjectService {
         return this.http.put(`${this.apiUrl}/task/${taskId}/Comments/${commentId}`, {content});
     }
     
+    reassignTask(taskId: number, newAssignedUserId: string) {
+        return this.http.post(`${this.apiUrl}/Task/${taskId}/assign`, { newAssignedUserId });
+    }
+
 }
