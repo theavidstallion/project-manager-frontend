@@ -50,7 +50,16 @@ export class Login {
         error: (error) => {
           this.loader.hide(); // Stop spinner
           setTimeout(() => {
-            this.toast.show("Invalid email or password.", 'error');
+            if(error.status == 401) {
+              this.toast.show("Invalid email or password.", 'error');
+            }
+            else if(error.status == 403) {
+              const msg = error.error?.message || "Please check your email to confirm your account.";
+              this.toast.show(msg, 'error');
+            }
+            else {
+              this.toast.show("Something went wrong. Try again maybe", 'error');
+            }
           }, 100);
           
         }
