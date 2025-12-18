@@ -6,6 +6,8 @@ import { Register } from '../app/features/register/register';
 import { ConfirmEmail } from '../app/features/confirm-email/confirm-email';
 import { ProjectDetails } from '../app/features/project-details/project-details';
 import { UserManagement } from '../app/features/user-management/user-management';
+import { ForgotPassword } from '../app/features/forgot-password/forgot-password';
+import { ResetPassword } from '../app/features/reset-password/reset-password';
 import { authGuard } from './core/guards/auth.guard';
 import { guestGuard } from './core/guards/guest-guard';
 import { Profile } from './features/profile/profile';
@@ -41,6 +43,15 @@ export const routes: Routes = [
         path: 'confirm-email',
         component: ConfirmEmail
     },
+    {   path: 'forgot-password', 
+        component: ForgotPassword 
+    },
+
+    { 
+        path: 'reset-password', 
+        component: ResetPassword 
+    },
+
     {
         path: 'projects/:id',
         component: ProjectDetails,

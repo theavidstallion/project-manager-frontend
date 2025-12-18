@@ -2,7 +2,7 @@ import { Injectable, signal, computed, inject, PLATFORM_ID } from '@angular/core
 import { HttpClient } from '@angular/common/http';
 import { tap } from 'rxjs/operators';
 import { API_URL } from '../constants/constants';
-import { User, LoginRequest, RegisterRequest } from '../models/auth.models';
+import { User, LoginRequest, RegisterRequest, ResetPasswordRequest, ForgotPasswordRequest } from '../models/auth.models';
 import { pipe } from 'rxjs';
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
@@ -77,10 +77,19 @@ export class AuthService {
         });
     }
 
+    forgotPassword(email: string) {
+        return this.http.post(`${this.apiUrl}/account/forgot-password`, { email });
+    }
+
+    resetPassword(data: ResetPasswordRequest) {
+        return this.http.post(`${this.apiUrl}/account/reset-password`, data );
+    }
+
     // Add this inside AuthService class
     updateProfile(data: any) {
         return this.http.put(`${this.apiUrl}/account/profile`, data);
     }
+
 
 
 
