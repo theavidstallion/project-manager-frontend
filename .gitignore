@@ -37,3 +37,7 @@ Thumbs.db
 .eslintcache
 e2e/*.js
 e2e/*.map
+
+
+#server.ts (pre-netlify) file
+server-ts-backup.txt
