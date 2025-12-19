@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
   selector: 'app-confirm-email',
@@ -13,6 +14,7 @@ export class ConfirmEmail implements OnInit {
   route = inject(ActivatedRoute);
   router = inject(Router);
   authService = inject(AuthService);
+  toast = inject(ToastService);
 
   status: 'loading' | 'success' | 'error' = 'loading';
 
@@ -35,10 +37,13 @@ export class ConfirmEmail implements OnInit {
               this.status = 'success';
               // Optional: Redirect automatically after 3 seconds
               setTimeout(() => this.router.navigate(['/login']), 3000);
+              this.toast.show("Email confirmed. Please login!");
           },
           error: (err) => {
               console.error('Confirmation failed:', err);
               this.status = 'error';
+              const msg = err.error?.message || "Confirmation failed. Please try logging in again.";
+              this.toast.show(msg, 'error');
           }
       });
   }
