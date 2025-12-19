@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { API_URL } from '../constants/constants';
+import { environment } from '../../../environments/environment';
 import { Project, CreateProjectRequest, EditProjectRequest } from '../models/project.models';
 import { TaskResponse, CreateTaskRequest } from '../models/task.models';
 import { UserResponse } from '../models/user.models';
@@ -15,7 +15,7 @@ import { CommentResponse } from '../models/task.models';
 
 export class ProjectService {
     private http = inject(HttpClient);
-    apiUrl = API_URL;
+    apiUrl = environment.apiUrl;
 
     getAllProjects(){
         return this.http.get<Project[]>(`${this.apiUrl}/project`);

@@ -37,6 +37,3 @@ Thumbs.db
 .eslintcache
 e2e/*.js
 e2e/*.map
-
-# Environment files
-src/environments/

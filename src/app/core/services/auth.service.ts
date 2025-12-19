@@ -1,18 +1,18 @@
 import { Injectable, signal, computed, inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { tap } from 'rxjs/operators';
-import { API_URL } from '../constants/constants';
 import { User, LoginRequest, RegisterRequest, ResetPasswordRequest, ForgotPasswordRequest } from '../models/auth.models';
 import { pipe } from 'rxjs';
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root'})
 
 export class AuthService {
     router = inject(Router);
     private platformId = inject(PLATFORM_ID);
-    apiUrl = API_URL;
+    apiUrl = environment.apiUrl;
     private http = inject(HttpClient);
     // Singal initialization
     private userSignal = signal< User | null>(null);
