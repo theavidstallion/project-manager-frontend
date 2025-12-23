@@ -2,12 +2,12 @@ import { inject, PLATFORM_ID } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { isPlatformBrowser } from '@angular/common'; 
 import { AuthService } from '../services/auth.service';
-import { ToastService } from '../services/toast.service'; // Import Toast
+import { ToastService } from '../services/toast.service'; 
 
 export const authGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
-  const toast = inject(ToastService); // Inject Toast
+  const toast = inject(ToastService); 
   const platformId = inject(PLATFORM_ID);
 
   // 1. SSR CHECK
