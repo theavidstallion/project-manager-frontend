@@ -126,18 +126,17 @@ export class ProjectDetails implements OnInit {
   }
 
   loadTasks(projectId: number) {
-    this.projectService.getTasks().subscribe({
-      next: (allTasks) => {
-        // A. Filter global list down to THIS project
-        const projectSpecificTasks = allTasks.filter(t => t.projectId === projectId);
-        
-        // B. Set the Master List (Source of Truth)
-        this.projectTasks.set(projectSpecificTasks);
-        
-        // C. Initialize the Display List (Apply default/empty filters)
-        this.applyFilters(); 
-      },
-      error: (err) => console.error("Failed to load tasks", err)
+    // PASS projectId to the service - backend now handles role-based filtering
+    this.projectService.getTasks(projectId).subscribe({
+        next: (projectTasks) => {
+            // Backend already filtered by project + role
+            // No manual filtering needed anymore!
+            this.projectTasks.set(projectTasks);
+            
+            // Apply UI filters (status, priority, etc.)
+            this.applyFilters(); 
+        },
+        error: (err) => console.error("Failed to load tasks", err)
     });
   }
 

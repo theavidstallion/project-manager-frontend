@@ -75,35 +75,24 @@ export class Dashboard implements OnInit {
 
   // --- NEW LOGIC: LOAD ACTIVE TASKS ---
   loadActiveTasks() {
+    // Call without projectId - backend returns role-based tasks
     this.projectService.getTasks().subscribe({
-      next: (allTasks) => {
-        const user = this.authService.currentUser();
-        if (!user) return;
+        next: (allTasks) => {
+            // Backend already filtered by role (Admin/Manager/Member)
+            // We only need to filter by status
+            
+            let filteredTasks = allTasks.filter(t => 
+                t.status !== 'Done' && t.status !== 'Completed'
+            );
 
-        let filteredTasks = [];
+            // Sort by Due Date (Soonest first)
+            filteredTasks.sort((a, b) => 
+                new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
+            );
 
-        // 1. Role-Based Filtering
-        if (user.role === 'Admin') {
-          // Admins see everything
-          filteredTasks = allTasks;
-        } else if (user.role === 'Manager') {
-          // Managers see tasks they created
-          filteredTasks = allTasks.filter(t => t.creatorId === user.userId);
-        } else {
-          // Members see tasks assigned to them
-          filteredTasks = allTasks.filter(t => t.assignedUserId === user.userId);
-        }
-
-        // 2. Status Filtering (Only Active)
-        // We exclude 'Done' or 'Completed'
-        filteredTasks = filteredTasks.filter(t => t.status !== 'Done' && t.status !== 'Completed');
-
-        // 3. Sort by Due Date (Sooest first)
-        filteredTasks.sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
-
-        this.activeTasks.set(filteredTasks);
-      },
-      error: (err) => console.error("Failed to load tasks", err)
+            this.activeTasks.set(filteredTasks);
+        },
+        error: (err) => console.error("Failed to load tasks", err)
     });
   }
 

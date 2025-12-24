@@ -43,8 +43,12 @@ export class ProjectService {
         return this.http.post(`${this.apiUrl}/Project/${projectId}/add-member`, payload);
     }
 
-    getTasks() {
-        return this.http.get<TaskResponse[]>(`${this.apiUrl}/Task`);
+    getTasks(projectId?: number) {
+        const url = projectId 
+            ? `${this.apiUrl}/Task?projectId=${projectId}`
+            : `${this.apiUrl}/Task`;
+        
+        return this.http.get<TaskResponse[]>(url);
     }
 
     updateProject(id: number, data: EditProjectRequest) {
