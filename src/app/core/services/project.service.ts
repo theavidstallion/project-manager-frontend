@@ -98,7 +98,7 @@ export class ProjectService {
 
     updateTaskStatusMember (taskId: number, newStatus: string) {
         const payload = { newStatus: newStatus };
-        return this.http.put(`${this.apiUrl}/Task/${taskId}/member/status`, payload);
+        return this.http.put(`${this.apiUrl}/Task/${taskId}/status`, payload);
     }
 
     removeMember(projectId: number, userId: string) {
