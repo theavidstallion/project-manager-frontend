@@ -501,27 +501,54 @@ export class ProjectDetails implements OnInit {
   onDeleteComment(commentId: number) {
     if (!this.selectedTask) return;
     
-    if (confirm('Delete this comment?')) {
-      this.projectService.deleteComment(this.selectedTask.id, commentId).subscribe({
-        next: () => {
-          this.loadComments(this.selectedTask!.id);
-          this.toast.show('Comment deleted.');
-        },
-        error: () => this.toast.show('Could not delete comment.', 'error')
-      });
-    }
+    Swal.fire({
+      title: 'Delete this comment?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc3545',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      
+      if (result.isConfirmed) {
+        this.loader.show();
+        
+        this.projectService.deleteComment(this.selectedTask!.id, commentId).subscribe({
+          next: () => {
+            this.loader.hide();
+            
+            // Optimistic UI update - remove comment from list immediately
+            this.taskComments.set(
+              this.taskComments().filter(c => c.id !== commentId)
+            );
+            
+            // Show success feedback
+            Swal.fire({
+              title: 'Deleted!',
+              text: 'Comment has been deleted.',
+              icon: 'success',
+              timer: 1500,
+              showConfirmButton: false
+            });
+          },
+          error: (err) => {
+            this.loader.hide();
+            const msg = err.error?.message || 'Could not delete comment.';
+            Swal.fire('Error', msg, 'error');
+          }
+        });
+      }
+    });
   }
 
   isCommentAuthor(comment: CommentResponse): boolean {
     const user = this.authService.currentUser();
     
-    // 1. Safety Check
+    // Safety Check
     if (!user || !user.userId) return false;
 
-    // 2. DEBUGGING (Check your Console to see why it fails)
-    // console.log(`Me: ${user.userId}, Author: ${comment.authorId}`);
-
-    // 3. Case-Insensitive Check (Fixes GUID mismatches)
+    // Case-Insensitive Check (Fixes GUID mismatches)
     const isAuthor = user.userId.toLowerCase() === comment.authorId.toLowerCase();
     const isAdmin = user.role === 'Admin';
 

@@ -4,61 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
-  template: `
-    <div class="container mt-5" style="max-width: 800px;">
-      
-      <div class="mb-4">
-        <a routerLink="/dashboard" class="text-decoration-none text-secondary">
-          <i class="bi bi-arrow-left"></i> Back to Dashboard
-        </a>
-      </div>
-
-      <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white py-3">
-          <h4 class="mb-0 fw-bold">My Profile</h4>
-        </div>
-        <div class="card-body p-4">
-          <form (ngSubmit)="onUpdateProfile()">
-            
-            <div class="row mb-3">
-              <div class="col-md-6">
-                <label class="form-label">First Name</label>
-                <input type="text" class="form-control" [(ngModel)]="profileForm.firstName" name="fName">
-              </div>
-              <div class="col-md-6">
-                <label class="form-label">Last Name</label>
-                <input type="text" class="form-control" [(ngModel)]="profileForm.lastName" name="lName">
-              </div>
-            </div>
-
-            <div class="mb-3">
-              <label class="form-label">Email Address</label>
-              <input type="email" class="form-control bg-light" [(ngModel)]="profileForm.email" name="email" readonly>
-              <div class="form-text">Email cannot be changed directly.</div>
-            </div>
-
-            <div class="mb-4">
-              <label class="form-label">Phone Number</label>
-              <input type="tel" class="form-control" [(ngModel)]="profileForm.phoneNumber" name="phone">
-            </div>
-
-            <div class="d-flex justify-content-between align-items-center">
-              <span class="text-muted small">User ID: {{ userIdDisplay }}</span>
-              <button type="submit" class="btn btn-primary px-4">
-                <i class="bi bi-save me-1"></i> Update Profile
-              </button>
-            </div>
-
-          </form>
-        </div>
-      </div>
-    </div>
-  `
+  templateUrl: 'profile.html' 
 })
 export class Profile implements OnInit {
   authService = inject(AuthService);
@@ -69,7 +21,10 @@ export class Profile implements OnInit {
     firstName: '',
     lastName: '',
     email: '',
-    phoneNumber: ''
+    phoneNumber: '',
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
   };
 
   ngOnInit() {
@@ -80,15 +35,105 @@ export class Profile implements OnInit {
         firstName: user.firstName || '',
         lastName: user.lastName || '',
         email: user.username || '',
-        phoneNumber: user.phoneNumber || '' 
+        phoneNumber: user.phoneNumber || '',
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
       };
     }
   }
 
+  showPasswordError(): boolean {
+    const { currentPassword, newPassword, confirmPassword } = this.profileForm;
+    
+    // Only show error if user has started typing passwords
+    const hasPasswordInput = currentPassword || newPassword || confirmPassword;
+    
+    if (!hasPasswordInput) return false;
+
+    // Check for mismatches or missing fields
+    if (newPassword && newPassword !== confirmPassword) return true;
+    if (newPassword && !currentPassword) return true;
+    if (newPassword && newPassword.length < 6) return true;
+    
+    return false;
+  }
+
+  getPasswordErrorMessage(): string {
+    const { currentPassword, newPassword, confirmPassword } = this.profileForm;
+    
+    if (newPassword && newPassword.length < 6) {
+      return 'New password must be at least 6 characters';
+    }
+    if (newPassword && !currentPassword) {
+      return 'Current password is required to change password';
+    }
+    if (newPassword !== confirmPassword) {
+      return 'New passwords do not match';
+    }
+    
+    return '';
+  }
+
   onUpdateProfile() {
-    this.authService.updateProfile(this.profileForm).subscribe({
-      next: () => this.toast.show('Profile updated successfully!'),
-      error: () => this.toast.show('Failed to update profile', 'error')
+    // Validation
+    if (!this.profileForm.firstName || !this.profileForm.lastName) {
+      this.toast.show('First name and last name are required', 'error');
+      return;
+    }
+
+    // If user is trying to change password, validate
+    const isChangingPassword = this.profileForm.newPassword || this.profileForm.confirmPassword || this.profileForm.currentPassword;
+    
+    if (isChangingPassword && this.showPasswordError()) {
+      this.toast.show(this.getPasswordErrorMessage(), 'error');
+      return;
+    }
+
+    // Prepare payload - only include password fields if user is changing password
+    const payload: any = {
+      firstName: this.profileForm.firstName,
+      lastName: this.profileForm.lastName,
+      phoneNumber: this.profileForm.phoneNumber
+    };
+
+    if (isChangingPassword && this.profileForm.newPassword) {
+      payload.currentPassword = this.profileForm.currentPassword;
+      payload.newPassword = this.profileForm.newPassword;
+    }
+
+    // Submit
+    this.authService.updateProfile(payload).subscribe({
+      next: (response: any) => {
+        Swal.fire({
+          title: 'Success!',
+          text: response.message || 'Profile updated successfully!',
+          icon: 'success',
+          timer: 2000,
+          showConfirmButton: false
+        });
+
+        // Clear password fields after successful update
+        this.profileForm.currentPassword = '';
+        this.profileForm.newPassword = '';
+        this.profileForm.confirmPassword = '';
+
+        // Update local user info (if needed)
+        const currentUser = this.authService.currentUser();
+        if (currentUser) {
+          const updatedUser = {
+            ...currentUser,
+            firstName: this.profileForm.firstName,
+            lastName: this.profileForm.lastName,
+            phoneNumber: this.profileForm.phoneNumber
+          };
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+        }
+      },
+      error: (err) => {
+        const message = err.error?.message || err.error || 'Failed to update profile';
+        Swal.fire('Error', message, 'error');
+      }
     });
   }
 }
