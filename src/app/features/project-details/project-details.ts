@@ -594,20 +594,9 @@ export class ProjectDetails implements OnInit {
   onSaveTags() {
     if (!this.selectedTask) return;
     
-    // We must reconstruct the whole object because your Backend PUT replaces everything
-    const updatePayload = {
-      title: this.selectedTask.title,
-      description: this.selectedTask.description,
-      priority: this.selectedTask.priority,
-      dueDate: this.selectedTask.dueDate,
-      status: this.selectedTask.status,
-      tagIds: this.tempTagIds // <--- The new list of tags
-    };
-
-    //this.loader.show();
-    this.projectService.updateTask(this.selectedTask.id, updatePayload).subscribe({
+    // Now we only send tag IDs, not the whole task object
+    this.projectService.updateTaskTags(this.selectedTask.id, this.tempTagIds).subscribe({
       next: () => {
-        //this.loader.hide();
         this.manageTagsModalInstance.hide();
         this.toast.show('Tags updated successfully');
         
@@ -619,7 +608,6 @@ export class ProjectDetails implements OnInit {
         this.loadTasks(this.project()!.id); // Background refresh
       },
       error: (err) => {
-        //this.loader.hide();
         this.toast.show('Failed to update tags', 'error');
       }
     });
@@ -653,32 +641,23 @@ export class ProjectDetails implements OnInit {
   onSaveChanges() {
     if (!this.selectedTask) return;
 
-    // 1. Prepare Payload (Existing logic)
-    const currentTagNames = this.selectedTask.tags || [];
-    const currentTagIds = this.availableTags()
-      .filter(t => currentTagNames.includes(t.name))
-      .map(t => t.id);
-
+    // Simplified payload - no tags here
     const updatePayload = {
       title: this.editTaskData.title,
       description: this.editTaskData.description,
       priority: this.editTaskData.priority,
       dueDate: this.editTaskData.dueDate,
-      status: this.editTaskData.status,
-      tagIds: currentTagIds
+      status: this.editTaskData.status
     };
 
     this.loader.show();
 
-    // 2. Call API
     this.projectService.updateTask(this.selectedTask.id, updatePayload).subscribe({
       next: () => {
         this.loader.hide();
         this.toast.show('Task updated successfully');
 
-        // --- FIX STARTS HERE ---
-        
-        // A. Manually update the local view object immediately
+        // Manually update the local view object immediately
         if (this.selectedTask) {
           this.selectedTask.title = this.editTaskData.title;
           this.selectedTask.description = this.editTaskData.description;
@@ -687,13 +666,11 @@ export class ProjectDetails implements OnInit {
           this.selectedTask.dueDate = this.editTaskData.dueDate; 
         }
 
-        // B. Switch back to View Mode
+        // Switch back to View Mode
         this.isEditingTask.set(false);
 
-        // C. Refresh the background list (so the card on the dashboard updates too)
+        // Refresh the background list
         this.loadTasks(this.project()!.id);
-        
-        // --- FIX ENDS HERE ---
       },
       error: (err) => {
         this.loader.hide();

@@ -92,6 +92,10 @@ export class ProjectService {
         return this.http.get<TaskResponse>(`${this.apiUrl}/Task/${id}`); 
     }
 
+    updateTaskTags(taskId: number, tagIds: number[]) {
+        return this.http.put(`${this.apiUrl}/Task/${taskId}/tags`, tagIds);
+    }
+
     deleteTask(taskId: number) {
         return this.http.delete(`${this.apiUrl}/Task/${taskId}`);
     }
