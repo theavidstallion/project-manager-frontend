@@ -90,9 +90,4 @@ export class AuthService {
         return this.http.put(`${this.apiUrl}/account/profile`, data);
     }
 
-
-
-
-
-
 }
