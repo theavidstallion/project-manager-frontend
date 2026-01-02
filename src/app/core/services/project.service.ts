@@ -51,6 +51,10 @@ export class ProjectService {
         return this.http.get<TaskResponse[]>(url);
     }
 
+    getOverdueTasksCount() {
+        return this.http.get(`${this.apiUrl}/Task/overdue-tasks`);
+    }
+
     updateProject(id: number, data: EditProjectRequest) {
         return this.http.put(`${this.apiUrl}/Project/${id}`, data);
     }

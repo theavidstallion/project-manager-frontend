@@ -48,6 +48,8 @@ export class Dashboard implements OnInit {
     status: 'Active'
   };
 
+  overdueTasksCount: number = 0;
+
   // Modal Reference
   @ViewChild('newProjectModal') modalRef!: ElementRef;
   private modalInstance: any;
@@ -56,6 +58,9 @@ export class Dashboard implements OnInit {
     if (isPlatformBrowser(this.platformId)) {
       this.loadProjects();
       this.loadActiveTasks(); // Load tasks on init
+      if(this.authService.currentUser()?.role == "Manager") {
+        this.getOverdueTasksCount();
+      }
     }
   }
 
@@ -95,6 +100,16 @@ export class Dashboard implements OnInit {
         error: (err) => console.error("Failed to load tasks", err)
     });
   }
+
+  // Get overdue tasks counts
+  getOverdueTasksCount () {
+    this.projectService.getOverdueTasksCount().subscribe({
+      next: (response: any) => {
+           this.overdueTasksCount = response.count;
+      }
+    });
+  }
+
 
   // Helper for Priority Colors
   getPriorityClass(priority: string) {
